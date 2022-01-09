@@ -18,6 +18,7 @@ namespace TodowebApi
 {
     public class Startup
     {
+        private const string AllowedOrigins = "_allowedOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -30,20 +31,44 @@ namespace TodowebApi
         {
 
             services.AddControllers();
+
+
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TodowebApi", Version = "v1" });
+            });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(AllowedOrigins, policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000");
+                    policy.AllowAnyOrigin();
+                    policy.AllowAnyMethod();
+                    policy.AllowAnyHeader();
+
+                    //policy.WithOrigins("http://localhost:3000");
+                    //policy.AllowAnyHeader();
+                    //policy.AllowAnyMethod();
+               
+                });
+
             });
 
             var cs = Configuration.GetConnectionString("Default");
             services.AddDbContext<DataContext>(options => options.UseSqlServer(cs));
 
             services.AddAutoMapper(typeof(Startup));
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(AllowedOrigins);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
